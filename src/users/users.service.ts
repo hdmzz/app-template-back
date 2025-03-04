@@ -70,4 +70,5 @@ export class UsersService {
     }
     return data;
   }
+  async get() {}
 }
