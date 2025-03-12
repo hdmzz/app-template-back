@@ -10,7 +10,7 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Post('/sign-up')
+  @Post('api/auth/register')
   signUp(@Body() data: any) {
     console.log('données recu : ', data);
   }
