@@ -23,7 +23,6 @@ export class AuthService {
       }
   
       if (authData.user) {
-        console.log(authData.user.id);
         const { data: userData, error: userError } = await this.supabaseService
           .getClient()
           .from('users')
@@ -49,6 +48,13 @@ export class AuthService {
       console.log("Erreur register auth.service.ts: ", error);
       throw new Error(error);
     };
+  }
+
+  async loginGoogle() {
+    const {data, error} = await this.supabaseService.getClient().auth.signInWithOAuth({
+      provider: 'google',
+      
+    })
   }
 
   async login(loginDto: LoginDto) {
