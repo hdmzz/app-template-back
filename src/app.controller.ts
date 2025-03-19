@@ -1,9 +1,10 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
+import { AuthService } from './auth/auth.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly appService: AppService, private readonly authService: AuthService) {}
 
   @Get('/hello')
   getHello(): string {
@@ -11,7 +12,12 @@ export class AppController {
   }
 
   @Post('api/auth/register')
-  signUp(@Body() data: any) {
-    console.log('données recu : ', data);
+  async signUp(@Body() data: any) {
+    return (await this.authService.register( data ));
+  }
+
+  @Post('auth/login')
+  async login(@Body() data: any) {
+    return (await this.authService.login( data ));
   }
 }

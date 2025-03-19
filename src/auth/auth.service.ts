@@ -1,7 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { log } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -10,16 +11,26 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     try {
       const { email, password, name } = registerDto;
+
+      if (!email || !password || password.length < 8 || !password.split("").some(char => !isNaN(Number(char)))) {
+        throw new BadRequestException("Email où mot de passe invalide, le mot de passe doit contenir des chiffres et des caracteres speciaux ET faire au moins 8 caracteres");
+      }
       
       const { data: authData, error: authError } = await this.supabaseService
         .getClient()
         .auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: `${process.env.FRONTEND_URL}/auth/callback`, // URL pour confirmation email
+            data: {
+              name, // Données personnalisées stockées dans auth.users
+            },
+          }
         });
   
       if (authError) {
-        throw authError;
+        throw new BadRequestException(authError.message);
       }
   
       if (authData.user) {
@@ -28,9 +39,11 @@ export class AuthService {
           .from('users')
           .insert([
             {
+              id: authData.user.id,
               email,
+              created_at: new Date(),
               name,
-              password,
+              tokens: 0,//le nombre de tokens que l'utilisateur achetera
             },
           ]);
   
@@ -68,8 +81,12 @@ export class AuthService {
       });
 
     if (error) {
+      console.log(error);
+      
       throw new UnauthorizedException('Identifiants invalides');
     }
+
+    console.log("login function: ", data);
 
     return data;
   }
