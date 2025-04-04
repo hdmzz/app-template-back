@@ -11,6 +11,11 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  @Get('api/')
+  async test() {
+    return 'test ok !';
+  }
+
   @Post('api/auth/register')
   async signUp(@Body() data: any) {
     return (await this.authService.register( data ));
