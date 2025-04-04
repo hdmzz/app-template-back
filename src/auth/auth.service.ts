@@ -12,9 +12,9 @@ export class AuthService {
     try {
       const { email, password, name } = registerDto;
 
-      if (!email || !password || password.length < 8 || !password.split("").some(char => !isNaN(Number(char)))) {
-        throw new BadRequestException("Email où mot de passe invalide, le mot de passe doit contenir des chiffres et des caracteres speciaux ET faire au moins 8 caracteres");
-      }
+      //if (!email || !password || password.length < 8 || !password.split("").some(char => !isNaN(Number(char)))) {
+      //  throw new BadRequestException("Email où mot de passe invalide, le mot de passe doit contenir des chiffres et des caracteres speciaux ET faire au moins 8 caracteres");
+      //}
       
       const { data: authData, error: authError } = await this.supabaseService
         .getClient()
@@ -28,32 +28,15 @@ export class AuthService {
             },
           }
         });
-  
+      
       if (authError) {
-        throw new BadRequestException(authError.message);
+        console.log("Erreur register function auth.service: ", authError);
+        throw new UnauthorizedException(authError.message);
       }
   
-      if (authData.user) {
-        const { data: userData, error: userError } = await this.supabaseService
-          .getClient()
-          .from('users')
-          .insert([
-            {
-              id: authData.user.id,
-              email,
-              created_at: new Date(),
-              name,
-              tokens: 0,//le nombre de tokens que l'utilisateur achetera
-            },
-          ]);
-  
-        if (userError) {
-          throw userError;
-        }
-  
+      if (authData.user) {  
         return {
           user: authData.user,
-          userData,
           session: authData.session,
         };
       }
@@ -81,11 +64,9 @@ export class AuthService {
       });
 
     if (error) {
-      console.log(error);
-      
-      throw new UnauthorizedException('Identifiants invalides');
+      console.log("Erreur auth.service.ts login fonction:", error);
+      throw new UnauthorizedException(error.message);
     }
-
     console.log("login function: ", data);
 
     return data;
